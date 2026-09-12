@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Kisan Sethu</title>
+
+  <!-- React and Babel are loaded from CDNs, so the file can be opened directly in a phone browser. -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin:0">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+
+/* ---------------------------------------------------------
+   KISAN SETHU — SIH26132 prototype
+   Demo data only. Not connected to any live government source.
+--------------------------------------------------------- */
+
+const T = {
+  mr: {
+    chooseLanguage: "भाषा निवडा", continueBtn: "पुढे चला",
+    navHome: "मुख्यपृष्ठ", navMarket: "बाजार", navOpp: "संधी", navTxn: "व्यवहार", navBuyer: "खरेदीदार पोर्टल", navAdmin: "प्रशासन",
+    dashboardGreeting: "नमस्कार, शेतकरी 🙏", demoFarmer: "नमुना शेतकरी", verifiedFarmer: "सत्यापित शेतकरी",
+    statPrice: "बाजारभाव", statDemand: "मागणी", statBest: "सर्वोत्तम संधी", statNet: "अपेक्षित निव्वळ उत्पन्न",
+    cta: "सर्वोत्तम विक्री संधी शोधा", mhMarkets: "महाराष्ट्रातील बाजार",
+    formTitle: "पिकाची माहिती भरा", labelCrop: "पीक", labelQty: "प्रमाण (क्विंटल)", labelQuality: "प्रत",
+    labelLoc: "तुमचे ठिकाण", labelWindow: "विक्री कालावधी", findBtn: "सर्वोत्तम संधी शोधा",
+    gradeA: "प्रतवारी अ", gradeB: "प्रतवारी ब", w3: "पुढील ३ दिवस", w7: "पुढील ७ दिवस", w15: "पुढील १५ दिवस",
+    marketTitle: "बाजार माहिती — महाराष्ट्र", demoLabel: "नमुना बाजार माहिती",
+    modalPrice: "सरासरी भाव", trend: "कल", demand: "मागणी", high: "जास्त", medium: "मध्यम",
+    buyersTitle: "सत्यापित खरेदीदार संधी", verifiedBuyer: "सत्यापित खरेदीदार",
+    qualityReq: "आवश्यक प्रत", qtyReq: "आवश्यक प्रमाण", offerPrice: "दिलेला भाव",
+    paymentTerms: "पैसे देण्याची अट", reliability: "विश्वासार्हता",
+    logisticsTitle: "वाहतूक व साठवण खर्च", distance: "अंतर", transportCost: "वाहतूक खर्च", storageCost: "साठवण खर्च",
+    netTitle: "अपेक्षित निव्वळ उत्पन्न", sellingValue: "विक्री मूल्य", totalNet: "एकूण अपेक्षित निव्वळ उत्पन्न", perQ: "प्रति क्विंटल",
+    rankingTitle: "संधींची क्रमवारी", bestOpp: "सर्वोत्तम संधी", whyBest: "ही सर्वोत्तम संधी का आहे?",
+    whyBestA: (n) => `${n} चा भाव सर्वाधिक नाही, पण वाहतूक व साठवण खर्च वजा केल्यावर याचे निव्वळ उत्पन्न सर्वाधिक आहे.`,
+    recommendTitle: "शिफारस केलेली विक्री संधी", matchScore: "जुळणी गुण", whyRecommended: "शिफारसीचे कारण",
+    connectBtn: "खरेदीदाराशी संपर्क करा",
+    txnTitle: "व्यवहाराची स्थिती", demoTxn: "नमुना व्यवहार",
+    stSent: "ऑफर पाठवली", stAccepted: "ऑफर स्वीकारली", stLogistics: "वाहतूक", stDelivery: "डिलिव्हरी", stPayment: "पैसे मिळाले",
+    buyerPortalTitle: "खरेदीदार पोर्टल", postReq: "गरज नोंदवा", matchingFarmers: "जुळणारे शेतकरी", makeOffer: "ऑफर द्या",
+    adminTitle: "प्रशासन डॅशबोर्ड", vFarmers: "सत्यापित शेतकरी", vBuyers: "सत्यापित खरेदीदार",
+    activeListings: "सक्रिय नोंदी", activeOffers: "सक्रिय ऑफर्स", txns: "व्यवहार", disputes: "तक्रारी",
+    footerNote: "चांगली माहिती → चांगले निर्णय → चांगले निव्वळ उत्पन्न",
+    back: "मागे", next: "पुढे", reasonGood: ["चांगली गरज जुळणी", "सत्यापित खरेदीदार", "कमी वाहतूक खर्च", "जास्त निव्वळ उत्पन्न"],
+    sources: "माहिती स्रोत", pending: "प्रलंबित", verified: "सत्यापित", rejected: "नाकारले",
+    home: "मुख्यपृष्ठ",
+    priceVsNet: "जास्त भाव ≠ जास्त निव्वळ उत्पन्न",
+    qualityFit: "प्रत जुळणी", quantityFit: "प्रमाण जुळणी", fitMatch: "जुळते", fitPartial: "अंशतः जुळते",
+    demoAdminLabel: "नमुना प्रशासन डॅशबोर्ड",
+    labelDeliveryWindow: "डिलिव्हरी कालावधी", sendOfferBtn: "ऑफर पाठवा", offerSentLabel: "ऑफर पाठवली ✓",
+    nameLabel: "नाव",
+    harvestDate: "कापणी तारीख", moisture: "ओलावा (%)", qualityNotes: "प्रत नोंदी", photosLabel: "मालाचे फोटो",
+    addPhotoDemo: "+ फोटो जोडा (नमुना)", photosAddedCount: (n) => `${n} फोटो जोडले (नमुना)`,
+    farmerDeclaredInfo: "शेतकऱ्याने नोंदवलेली माहिती", sellProduceTitle: "माल विका", listingCreatedMsg: "मालाची नोंद तयार झाली",
+    qualityStatusLabel: "प्रत स्थिती", qsDeclared: "शेतकऱ्याने नोंदवले", qsPending: "पडताळणी प्रलंबित",
+    qsVerified: "सत्यापित", qsBuyerConfirmed: "खरेदीदाराने पुष्टी केली", qsDisputed: "प्रत समस्या / वाद",
+    qualityVerificationTitle: "प्रत पडताळणी", verificationDateLbl: "पडताळणी तारीख", verifyBtn: "पडताळा",
+    demoVerificationLabel: "नमुना पडताळणी",
+    qualityMatchLabel: "प्रत जुळणी", qualityMatchFull: "पूर्ण प्रत जुळणी", qualityMatchPartial: "अंशतः प्रत जुळणी", qualityMatchMismatch: "प्रत जुळत नाही",
+    matchBreakdownTitle: "गुण तपशील", factorCrop: "पीक जुळणी", factorQuality: "प्रत जुळणी", factorQuantity: "प्रमाण जुळणी",
+    factorLogistics: "वाहतूक सुयोग्यता", factorVerification: "सत्यापित खरेदीदार", factorReliability: "चांगली विश्वासार्हता", factorNet: "उत्तम निव्वळ उत्पन्न",
+    stQualityConfirm: "प्रत पुष्टी", buyerQualityConfirmTitle: "खरेदीदाराची प्रत पुष्टी",
+    optAccepted: "सांगितल्याप्रमाणे स्वीकारले", optQualityDiffers: "प्रत वेगळी आहे", optQuantityDiffers: "प्रमाण वेगळे आहे", optReportIssue: "तक्रार नोंदवा",
+    agreedAtSale: "विक्रीवेळी ठरलेले", deliveryConfirmationLbl: "डिलिव्हरी पुष्टी",
+    disputeTitle: "प्रत वाद", issueType: "समस्या प्रकार", issueQualityMismatch: "प्रत जुळत नाही", issueQuantityMismatch: "प्रमाण जुळत नाही", issueReported: "समस्या नोंदवली",
+    disputeOpen: "उघडे", disputeReview: "पुनरावलोकन सुरू", disputeResolved: "निकाली", resolveBtn: "निकाली काढा", reviewBtn: "पुनरावलोकनात ठेवा",
+    adminQualitySection: "प्रत पडताळणी (नमुना)", verificationPendingLbl: "पडताळणी प्रलंबित", verifiedListingsLbl: "सत्यापित नोंदी",
+    qualityDisputesLbl: "प्रत वाद", resolvedDisputesLbl: "निकाली वाद",
+    viewPhotosBtn: "फोटो पहा (नमुना)", qualityDetailsCardTitle: "प्रत तपशील",
+    trustTagline: "भाव + खरेदीदार ऑफर + प्रत + वाहतूक + साठवण + विश्वास = अपेक्षित निव्वळ उत्पन्न",
+    expectedPriceLabel: "अपेक्षित भाव", listingColLabel: "नोंद", actionColLabel: "कृती", farmerColLabel: "शेतकरी", statusColLabel: "स्थिती", qualityColLabel: "प्रत",
+    vehicleSectionTitle: "वाहन व डिलिव्हरी", vehicleStatus: "वाहन स्थिती", vehicleType: "वाहन प्रकार", vehicleNumber: "वाहन क्रमांक",
+    pickupLocation: "उचल ठिकाण", destinationLoc: "पोहोच ठिकाण", estDeliveryTime: "अंदाजित डिलिव्हरी वेळ",
+    vehicleTypePickup: "पिकअप", vehicleTypeMini: "मिनी ट्रक", vehicleTypeLarge: "मोठा ट्रक", vehicleTypeTractor: "ट्रॅक्टर ट्रॉली",
+    assignVehicleBtn: "वाहन नेमा", confirmPickupBtn: "उचल पुष्टी करा", startTransitBtn: "प्रवास सुरू करा", markNearDestBtn: "जवळ पोहोचले असे नोंदवा", markDeliveredBtn: "पोहोच झाली असे नोंदवा",
+    trackingCardTitle: "डिलिव्हरी ट्रॅकिंग", demoTrackingLabel: "नमुना ट्रॅकिंग", lastUpdatedLbl: "शेवटचे अद्ययावत",
+    myShipmentTitle: "माझी खेप", incomingShipmentTitle: "येणारी खेप",
+    stVehicleAssigned: "वाहन नेमले", stPickupConfirmed: "उचल पुष्टी झाली", stInTransit: "प्रवासात", stNearDestination: "जवळ पोहोचले", stDelivered: "पोहोच झाली",
+    reportDeliveryIssueBtn: "डिलिव्हरी समस्या नोंदवा",
+    issueVehicleDelay: "वाहन उशीर", issueWrongRoute: "चुकीचा मार्ग", issueDeliveryIssue: "डिलिव्हरी समस्या", issueDamagedProduce: "माल खराब झाला", issueMissingProduce: "माल गहाळ",
+    gpsFutureNote: "उत्पादन आवृत्तीत लाइव्ह GPS ट्रॅकिंग जोडता येईल.",
+    transportMgmtTitle: "वाहतूक व्यवस्थापन (नमुना)",
+    transportStatusUnassigned: "वाहन नेमलेले नाही", transportStatusAssigned: "वाहन नेमले", transportStatusPickup: "उचल पुष्टी झाली", transportStatusTransit: "प्रवासात", transportStatusNear: "जवळ पोहोचले", transportStatusDelivered: "पोहोच झाली",
+    etaLabel: "ETA", fromLabel: "कडून", toLabel: "कडे", vehicleColLabel: "वाहन", transactionColLabel: "व्यवहार", stageColLabel: "डिलिव्हरी टप्पा",
+  },
+  en: {
+    chooseLanguage: "Choose Language", continueBtn: "Continue",
+    navHome: "Home", navMarket: "Market", navOpp: "Opportunities", navTxn: "Transactions", navBuyer: "Buyer Portal", navAdmin: "Admin",
+    dashboardGreeting: "Welcome, Farmer 🙏", demoFarmer: "Demo Farmer", verifiedFarmer: "Verified Farmer",
+    statPrice: "Market Price", statDemand: "Demand", statBest: "Best Opportunity", statNet: "Expected Net Realization",
+    cta: "Find Best Selling Opportunity", mhMarkets: "Maharashtra Markets",
+    formTitle: "Enter Crop Details", labelCrop: "Crop", labelQty: "Quantity (quintals)", labelQuality: "Quality",
+    labelLoc: "Your Location", labelWindow: "Selling Window", findBtn: "Find Best Opportunity",
+    gradeA: "Grade A", gradeB: "Grade B", w3: "Next 3 days", w7: "Next 7 days", w15: "Next 15 days",
+    marketTitle: "Market Intelligence — Maharashtra", demoLabel: "DEMO MARKET DATA",
+    modalPrice: "Modal Price", trend: "Trend", demand: "Demand", high: "High", medium: "Medium",
+    buyersTitle: "Verified Buyer Opportunities", verifiedBuyer: "Verified Buyer",
+    qualityReq: "Quality Required", qtyReq: "Quantity Required", offerPrice: "Offer Price",
+    paymentTerms: "Payment Terms", reliability: "Reliability",
+    logisticsTitle: "Logistics & Storage Cost", distance: "Distance", transportCost: "Transport Cost", storageCost: "Storage Cost",
+    netTitle: "Expected Net Realization", sellingValue: "Selling Value", totalNet: "Total Expected Net Realization", perQ: "per quintal",
+    rankingTitle: "Opportunity Ranking", bestOpp: "BEST OPPORTUNITY", whyBest: "Why is this the best option?",
+    whyBestA: (n) => `${n} does not have the highest quoted price, but has the highest expected net realization after logistics and storage costs.`,
+    recommendTitle: "Recommended Selling Opportunity", matchScore: "Match Score", whyRecommended: "Why recommended",
+    connectBtn: "Connect with Buyer",
+    txnTitle: "Transaction Status", demoTxn: "Demo Transaction",
+    stSent: "Offer Sent", stAccepted: "Offer Accepted", stLogistics: "Logistics", stDelivery: "Delivery", stPayment: "Payment Received",
+    buyerPortalTitle: "Buyer Portal", postReq: "Post Requirement", matchingFarmers: "Matching Farmers", makeOffer: "Make Offer",
+    adminTitle: "Admin Dashboard", vFarmers: "Verified Farmers", vBuyers: "Verified Buyers",
+    activeListings: "Active Listings", activeOffers: "Active Offers", txns: "Transactions", disputes: "Disputes",
+    footerNote: "Better Information → Better Choices → Better Net Realization",
+    back: "Back", next: "Next", reasonGood: ["Good buyer requirement match", "Verified buyer", "Lower logistics cost", "Higher expected net realization"],
+    sources: "Data Sources", pending: "Pending", verified: "Verified", rejected: "Rejected",
+    home: "Home",
+    priceVsNet: "Highest Price ≠ Highest Net Realization",
+    qualityFit: "Quality Fit", quantityFit: "Quantity Fit", fitMatch: "Match", fitPartial: "Partial",
+    demoAdminLabel: "DEMO ADMIN DASHBOARD",
+    labelDeliveryWindow: "Delivery Window", sendOfferBtn: "Send Offer", offerSentLabel: "Offer Sent ✓",
+    nameLabel: "Name",
+    harvestDate: "Harvest Date", moisture: "Moisture (%)", qualityNotes: "Quality Notes", photosLabel: "Produce Photos",
+    addPhotoDemo: "+ Add Photo (demo)", photosAddedCount: (n) => `${n} photo${n === 1 ? "" : "s"} added (demo)`,
+    farmerDeclaredInfo: "Farmer Declared Information", sellProduceTitle: "Sell Produce", listingCreatedMsg: "Produce listing created",
+    qualityStatusLabel: "Quality Status", qsDeclared: "Farmer Declared", qsPending: "Verification Pending",
+    qsVerified: "Verified", qsBuyerConfirmed: "Buyer Confirmed", qsDisputed: "Quality Issue / Disputed",
+    qualityVerificationTitle: "Quality Verification", verificationDateLbl: "Verification Date", verifyBtn: "Verify",
+    demoVerificationLabel: "Demo Verification",
+    qualityMatchLabel: "Quality Match", qualityMatchFull: "Full Quality Match", qualityMatchPartial: "Partial Quality Match", qualityMatchMismatch: "Quality Mismatch",
+    matchBreakdownTitle: "Match Score Breakdown", factorCrop: "Crop Match", factorQuality: "Quality Match", factorQuantity: "Quantity Match",
+    factorLogistics: "Logistics Fit", factorVerification: "Verified Buyer", factorReliability: "Good Reliability", factorNet: "Strong Net Realization",
+    stQualityConfirm: "Quality Confirmed", buyerQualityConfirmTitle: "Buyer Quality Confirmation",
+    optAccepted: "Accepted as described", optQualityDiffers: "Quality differs", optQuantityDiffers: "Quantity differs", optReportIssue: "Report issue",
+    agreedAtSale: "Agreed at Sale", deliveryConfirmationLbl: "Delivery Confirmation",
+    disputeTitle: "Quality Dispute", issueType: "Issue Type", issueQualityMismatch: "Quality Mismatch", issueQuantityMismatch: "Quantity Mismatch", issueReported: "Issue Reported",
+    disputeOpen: "Open", disputeReview: "Under Review", disputeResolved: "Resolved", resolveBtn: "Resolve", reviewBtn: "Mark Under Review",
+    adminQualitySection: "Quality Verification (Demo)", verificationPendingLbl: "Verification Pending", verifiedListingsLbl: "Verified Listings",
+    qualityDisputesLbl: "Quality Disputes", resolvedDisputesLbl: "Resolved Disputes",
+    viewPhotosBtn: "View Photos (demo)", qualityDetailsCardTitle: "Quality Details",
+    trustTagline: "Price + Buyer Offer + Quality + Logistics + Storage + Trust = Expected Net Realization",
+    expectedPriceLabel: "Expected Price", listingColLabel: "Listing", actionColLabel: "Action", farmerColLabel: "Farmer", statusColLabel: "Status", qualityColLabel: "Quality",
+    vehicleSectionTitle: "Vehicle & Delivery", vehicleStatus: "Vehicle Status", vehicleType: "Vehicle Type", vehicleNumber: "Vehicle Number",
+    pickupLocation: "Pickup Location", destinationLoc: "Destination", estDeliveryTime: "Estimated Delivery Time",
+    vehicleTypePickup: "Pickup", vehicleTypeMini: "Mini Truck", vehicleTypeLarge: "Large Truck", vehicleTypeTractor: "Tractor Trolley",
+    assignVehicleBtn: "Assign Vehicle", confirmPickupBtn: "Confirm Pickup", startTransitBtn: "Start Transit", markNearDestBtn: "Mark Near Destination", markDeliveredBtn: "Mark Delivered",
+    trackingCardTitle: "Delivery Tracking", demoTrackingLabel: "Demo Tracking", lastUpdatedLbl: "Last Updated",
+    myShipmentTitle: "My Shipment", incomingShipmentTitle: "Incoming Shipment",
+    stVehicleAssigned: "Vehicle Assigned", stPickupConfirmed: "Pickup Confirmed", stInTransit: "In Transit", stNearDestination: "Near Destination", stDelivered: "Delivered",
+    reportDeliveryIssueBtn: "Report Delivery Issue",
+    issueVehicleDelay: "Vehicle Delay", issueWrongRoute: "Wrong Route", issueDeliveryIssue: "Delivery Issue", issueDamagedProduce: "Damaged Produce", issueMissingProduce: "Missing Produce",
+    gpsFutureNote: "Live GPS tracking can be integrated in the production version.",
+    transportMgmtTitle: "Transport Management (Demo)",
+    transportStatusUnassigned: "Unassigned", transportStatusAssigned: "Assigned", transportStatusPickup: "Pickup Confirmed", transportStatusTransit: "In Transit", transportStatusNear: "Near Destination", transportStatusDelivered: "Delivered",
+    etaLabel: "ETA", fromLabel: "From", toLabel: "To", vehicleColLabel: "Vehicle", transactionColLabel: "Transaction", stageColLabel: "Delivery Stage",
+  },
+  hi: {
+    chooseLanguage: "भाषा चुनें", continueBtn: "आगे बढ़ें",
+    navHome: "होम", navMarket: "बाज़ार", navOpp: "अवसर", navTxn: "लेनदेन", navBuyer: "खरीदार पोर्टल", navAdmin: "प्रशासन",
+    dashboardGreeting: "नमस्ते, किसान 🙏", demoFarmer: "नमूना किसान", verifiedFarmer: "सत्यापित किसान",
+    statPrice: "बाज़ार भाव", statDemand: "मांग", statBest: "सर्वोत्तम अवसर", statNet: "अपेक्षित शुद्ध आय",
+    cta: "सर्वोत्तम बिक्री अवसर खोजें", mhMarkets: "महाराष्ट्र के बाज़ार",
+    formTitle: "फसल की जानकारी भरें", labelCrop: "फसल", labelQty: "मात्रा (क्विंटल)", labelQuality: "गुणवत्ता",
+    labelLoc: "आपका स्थान", labelWindow: "बिक्री अवधि", findBtn: "सर्वोत्तम अवसर खोजें",
+    gradeA: "ग्रेड ए", gradeB: "ग्रेड बी", w3: "अगले ३ दिन", w7: "अगले ७ दिन", w15: "अगले १५ दिन",
+    marketTitle: "बाज़ार जानकारी — महाराष्ट्र", demoLabel: "नमूना बाज़ार डेटा",
+    modalPrice: "औसत भाव", trend: "रुझान", demand: "मांग", high: "अधिक", medium: "मध्यम",
+    buyersTitle: "सत्यापित खरीदार अवसर", verifiedBuyer: "सत्यापित खरीदार",
+    qualityReq: "आवश्यक गुणवत्ता", qtyReq: "आवश्यक मात्रा", offerPrice: "प्रस्तावित भाव",
+    paymentTerms: "भुगतान शर्तें", reliability: "विश्वसनीयता",
+    logisticsTitle: "परिवहन व भंडारण लागत", distance: "दूरी", transportCost: "परिवहन लागत", storageCost: "भंडारण लागत",
+    netTitle: "अपेक्षित शुद्ध आय", sellingValue: "बिक्री मूल्य", totalNet: "कुल अपेक्षित शुद्ध आय", perQ: "प्रति क्विंटल",
+    rankingTitle: "अवसरों की रैंकिंग", bestOpp: "सर्वोत्तम अवसर", whyBest: "यह सर्वोत्तम विकल्प क्यों है?",
+    whyBestA: (n) => `${n} का भाव सबसे अधिक नहीं है, लेकिन परिवहन व भंडारण लागत घटाने के बाद इसकी शुद्ध आय सबसे अधिक है।`,
+    recommendTitle: "अनुशंसित बिक्री अवसर", matchScore: "मिलान स्कोर", whyRecommended: "अनुशंसा का कारण",
+    connectBtn: "खरीदार से संपर्क करें",
+    txnTitle: "लेनदेन की स्थिति", demoTxn: "नमूना लेनदेन",
+    stSent: "ऑफर भेजी गई", stAccepted: "ऑफर स्वीकृत", stLogistics: "परिवहन", stDelivery: "डिलीवरी", stPayment: "भुगतान प्राप्त",
+    buyerPortalTitle: "खरीदार पोर्टल", postReq: "आवश्यकता पोस्ट करें", matchingFarmers: "मिलान किसान", makeOffer: "ऑफर दें",
+    adminTitle: "प्रशासन डैशबोर्ड", vFarmers: "सत्यापित किसान", vBuyers: "सत्यापित खरीदार",
+    activeListings: "सक्रिय सूचियाँ", activeOffers: "सक्रिय ऑफ़र", txns: "लेनदेन", disputes: "शिकायतें",
+    footerNote: "बेहतर जानकारी → बेहतर निर्णय → बेहतर शुद्ध आय",
+    back: "पीछे", next: "आगे", reasonGood: ["अच्छी आवश्यकता मिलान", "सत्यापित खरीदार", "कम परिवहन लागत", "अधिक शुद्ध आय"],
+    sources: "डेटा स्रोत", pending: "लंबित", verified: "सत्यापित", rejected: "अस्वीकृत",
+    home: "होम",
+    priceVsNet: "अधिक भाव ≠ अधिक शुद्ध आय",
+    qualityFit: "गुणवत्ता मिलान", quantityFit: "मात्रा मिलान", fitMatch: "मेल", fitPartial: "आंशिक मेल",
+    demoAdminLabel: "नमूना प्रशासन डैशबोर्ड",
+    labelDeliveryWindow: "डिलीवरी अवधि", sendOfferBtn: "ऑफर भेजें", offerSentLabel: "ऑफर भेजी गई ✓",
+    nameLabel: "नाम",
+    harvestDate: "कटाई तिथि", moisture: "नमी (%)", qualityNotes: "गुणवत्ता टिप्पणी", photosLabel: "उपज की फोटो",
+    addPhotoDemo: "+ फोटो जोड़ें (नमूना)", photosAddedCount: (n) => `${n} फोटो जोड़ी गईं (नमूना)`,
+    farmerDeclaredInfo: "किसान द्वारा घोषित जानकारी", sellProduceTitle: "उपज बेचें", listingCreatedMsg: "उपज लिस्टिंग बनाई गई",
+    qualityStatusLabel: "गुणवत्ता स्थिति", qsDeclared: "किसान द्वारा घोषित", qsPending: "सत्यापन लंबित",
+    qsVerified: "सत्यापित", qsBuyerConfirmed: "खरीदार द्वारा पुष्टि", qsDisputed: "गुणवत्ता समस्या / विवाद",
+    qualityVerificationTitle: "गुणवत्ता सत्यापन", verificationDateLbl: "सत्यापन तिथि", verifyBtn: "सत्यापित करें",
+    demoVerificationLabel: "नमूना सत्यापन",
+    qualityMatchLabel: "गुणवत्ता मिलान", qualityMatchFull: "पूर्ण गुणवत्ता मिलान", qualityMatchPartial: "आंशिक गुणवत्ता मिलान", qualityMatchMismatch: "गुणवत्ता बेमेल",
+    matchBreakdownTitle: "स्कोर विवरण", factorCrop: "फसल मिलान", factorQuality: "गुणवत्ता मिलान", factorQuantity: "मात्रा मिलान",
+    factorLogistics: "परिवहन उपयुक्तता", factorVerification: "सत्यापित खरीदार", factorReliability: "अच्छी विश्वसनीयता", factorNet: "बेहतर शुद्ध आय",
+    stQualityConfirm: "गुणवत्ता पुष्टि", buyerQualityConfirmTitle: "खरीदार गुणवत्ता पुष्टि",
+    optAccepted: "बताए अनुसार स्वीकृत", optQualityDiffers: "गुणवत्ता भिन्न है", optQuantityDiffers: "मात्रा भिन्न है", optReportIssue: "समस्या दर्ज करें",
+    agreedAtSale: "बिक्री के समय तय", deliveryConfirmationLbl: "डिलीवरी पुष्टि",
+    disputeTitle: "गुणवत्ता विवाद", issueType: "समस्या प्रकार", issueQualityMismatch: "गुणवत्ता बेमेल", issueQuantityMismatch: "मात्रा बेमेल", issueReported: "समस्या दर्ज",
+    disputeOpen: "खुला", disputeReview: "समीक्षा जारी", disputeResolved: "सुलझाया गया", resolveBtn: "सुलझाएं", reviewBtn: "समीक्षा में डालें",
+    adminQualitySection: "गुणवत्ता सत्यापन (नमूना)", verificationPendingLbl: "सत्यापन लंबित", verifiedListingsLbl: "सत्यापित लिस्टिंग",
+    qualityDisputesLbl: "गुणवत्ता विवाद", resolvedDisputesLbl: "सुलझाए गए विवाद",
+    viewPhotosBtn: "फोटो देखें (नमूना)", qualityDetailsCardTitle: "गुणवत्ता विवरण",
+    trustTagline: "भाव + खरीदार ऑफर + गुणवत्ता + परिवहन + भंडारण + भरोसा = अपेक्षित शुद्ध आय",
+    expectedPriceLabel: "अपेक्षित भाव", listingColLabel: "लिस्टिंग", actionColLabel: "कार्रवाई", farmerColLabel: "किसान", statusColLabel: "स्थिति", qualityColLabel: "गुणवत्ता",
+    vehicleSectionTitle: "वाहन व डिलीवरी", vehicleStatus: "वाहन स्थिति", vehicleType: "वाहन प्रकार", vehicleNumber: "वाहन नंबर",
+    pickupLocation: "पिकअप स्थान", destinationLoc: "गंतव्य", estDeliveryTime: "अनुमानित डिलीवरी समय",
+    vehicleTypePickup: "पिकअप", vehicleTypeMini: "मिनी ट्रक", vehicleTypeLarge: "बड़ा ट्रक", vehicleTypeTractor: "ट्रैक्टर ट्रॉली",
+    assignVehicleBtn: "वाहन नियुक्त करें", confirmPickupBtn: "पिकअप की पुष्टि करें", startTransitBtn: "परिवहन शुरू करें", markNearDestBtn: "गंतव्य के निकट चिह्नित करें", markDeliveredBtn: "डिलीवर हुआ चिह्नित करें",
+    trackingCardTitle: "डिलीवरी ट्रैकिंग", demoTrackingLabel: "नमूना ट्रैकिंग", lastUpdatedLbl: "अंतिम अपडेट",
+    myShipmentTitle: "मेरी खेप", incomingShipmentTitle: "आने वाली खेप",
+    stVehicleAssigned: "वाहन नियुक्त", stPickupConfirmed: "पिकअप पुष्टि", stInTransit: "परिवहन में", stNearDestination: "गंतव्य के निकट", stDelivered: "डिलीवर हुआ",
+    reportDeliveryIssueBtn: "डिलीवरी समस्या दर्ज करें",
+    issueVehicleDelay: "वाहन विलंब", issueWrongRoute: "गलत मार्ग", issueDeliveryIssue: "डिलीवरी समस्या", issueDamagedProduce: "उपज खराब", issueMissingProduce: "उपज गुम",
+    gpsFutureNote: "उत्पादन संस्करण में लाइव GPS ट्रैकिंग जोड़ी जा सकती है।",
+    transportMgmtTitle: "परिवहन प्रबंधन (नमूना)",
+    transportStatusUnassigned: "वाहन नियुक्त नहीं", transportStatusAssigned: "वाहन नियुक्त", transportStatusPickup: "पिकअप पुष्टि", transportStatusTransit: "परिवहन में", transportStatusNear: "गंतव्य के निकट", transportStatusDelivered: "डिलीवर हुआ",
+    etaLabel: "ETA", fromLabel: "से", toLabel: "तक", vehicleColLabel: "वाहन", transactionColLabel: "लेनदेन", stageColLabel: "डिलीवरी चरण",
+  },
+};
+
+const CROPS = ["Wheat", "Soybean", "Cotton", "Onion", "Tomato"];
+const CROP_LABEL = {
+  Wheat: { mr: "गहू", hi: "गेहूं", en: "Wheat" },
+  Soybean: { mr: "सोयाबीन", hi: "सोयाबीन", en: "Soybean" },
+  Cotton: { mr: "कापूस", hi: "कपास", en: "Cotton" },
+  Onion: { mr: "कांदा", hi: "प्याज़", en: "Onion" },
+  Tomato: { mr: "टोमॅटो", hi: "टमाटर", en: "Tomato" },
+};
+const CROP_BASE = { Wheat: 3100, Soybean: 4800, Cotton: 7200, Onion: 1800, Tomato: 1500 };
+const LOCATIONS = ["Nashik", "Pune", "Nagpur", "Akola", "Amravati", "Latur", "Yavatmal", "Jalgaon", "Ahmednagar", "Solapur"];
+
+const MARKET_TEMPLATE = [
+  { name: "Lasalgaon", offset: 0.0065, trend: 3.8, demand: "high" },
+  { name: "Pune", offset: 0.0484, trend: 5.2, demand: "high" },
+  { name: "Nagpur", offset: -0.0129, trend: 1.4, demand: "medium" },
+  { name: "Akola", offset: 0.0258, trend: -1.1, demand: "medium" },
+  { name: "Amravati", offset: -0.0032, trend: 2.1, demand: "medium" },
+];
+
+const BUYER_TEMPLATE = [
+  { id: "A", name: "Sahyadri Agro Traders", location: "Sangamner", distance: 210, transport: 250, storage: 50, priceDelta: 100, quality: "gradeA", qtyReq: "20–60 q", payment: "50% advance", reliability: 92 },
+  { id: "B", name: "Godavari FPO Mart", location: "Shirdi", distance: 165, transport: 100, storage: 20, priceDelta: 0, quality: "gradeB", qtyReq: "10–100 q", payment: "On delivery", reliability: 97 },
+  { id: "C", name: "Vidarbha Grain Co.", location: "Kopargaon", distance: 300, transport: 340, storage: 70, priceDelta: 150, quality: "gradeA", qtyReq: "50–150 q", payment: "7 days after delivery", reliability: 88 },
+];
+
+function buildCropData(crop) {
+  const base = CROP_BASE[crop];
+  const markets = MARKET_TEMPLATE.map((m) => ({ ...m, price: Math.round(base * (1 + m.offset)) }));
+  const buyers = BUYER_TEMPLATE.map((b) => {
+    const offer = base + b.priceDelta;
+    const netPerQ = offer - b.transport - b.storage;
+    return { ...b, offer, netPerQ };
+  });
+  return { base, markets, buyers };
+}
+
+const FLOW = ["market", "buyers", "logistics", "netreal", "ranking", "recommend", "transaction"];
+
+// Demo-only farmer records used by the Buyer Portal and Admin Dashboard,
+// so counts shown in the admin view are derived from the same data
+// the rest of the prototype uses (not invented statistics).
+const FARMER_RECORDS = [
+  { key: "ramesh", loc: "Nashik", crop: "Wheat", qty: 40, status: "verified", quality: "gradeA", moisture: 12, harvestDate: "2026-09-05", qualityStatus: "verified" },
+  { key: "sunita", loc: "Ahmednagar", crop: "Onion", qty: 25, status: "pending", quality: "gradeB", moisture: 9, harvestDate: "2026-09-08", qualityStatus: "pending" },
+];
+
+// Delivery/vehicle tracking is demo-only local state — never real GPS,
+// never a live transport provider. See t.demoTrackingLabel / t.gpsFutureNote.
+const VEHICLE_TYPES = ["pickup", "mini", "large", "tractor"];
+
+function vehicleTypeLabel(type, t) {
+  return { pickup: t.vehicleTypePickup, mini: t.vehicleTypeMini, large: t.vehicleTypeLarge, tractor: t.vehicleTypeTractor }[type] || type;
+}
+
+function formatEta(distanceKm) {
+  const minutes = Math.max(20, Math.round((distanceKm / 40) * 60)); // demo assumption: ~40 km/h average
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return hrs > 0 ? `${hrs} hr ${mins} min` : `${mins} min`;
+}
+
+function transportStatusLabel(tx, t) {
+  if (tx.stage < 3) return t.transportStatusUnassigned;
+  if (tx.stage === 3) return t.transportStatusAssigned;
+  if (tx.stage === 4) return t.transportStatusPickup;
+  if (tx.stage === 5) return t.transportStatusTransit;
+  if (tx.stage === 6) return t.transportStatusNear;
+  return t.transportStatusDelivered;
+}
+
+function checkQtyFit(farmerQty, qtyReqStr) {
+  const nums = (qtyReqStr.match(/\d+/g) || []).map(Number);
+  if (nums.length < 2) return "partial";
+  const [min, max] = nums;
+  return farmerQty >= min && farmerQty <= max ? "match" : "partial";
+}
+
+// Grade ranking used only to compare a farmer's declared quality
+// against a buyer's minimum requirement (higher rank = better grade).
+const GRADE_RANK = { gradeA: 2, gradeB: 1 };
+
+function checkQualityMatch(farmerQuality, buyerQuality) {
+  const farmerRank = GRADE_RANK[farmerQuality] || 0;
+  const buyerRank = GRADE_RANK[buyerQuality] || 0;
+  if (farmerRank >= buyerRank) return "full";
+  if (farmerRank === buyerRank - 1) return "partial";
+  return "mismatch";
+}
+
+/**
+ * Dynamic, explainable match score (0-100). Never hard-coded — every
+ * run recomputes each factor from the buyer + the farmer's current
+ * crop/quality/quantity input, so the total changes whenever that
+ * input or the buyer set changes.
+ *
+ * Weights: Crop fit 10, Quality fit 20, Quantity fit 15,
+ * Logistics fit 10, Verified buyer 15, Reliability 15, Net realization 15.
+ */
+function computeMatchScore(buyer, cropForm, buyersInSet) {
+  const qualityMatch = checkQualityMatch(cropForm.quality, buyer.quality);
+  const qtyFit = checkQtyFit(cropForm.qty, buyer.qtyReq);
+  const maxDistance = Math.max(...buyersInSet.map((b) => b.distance), 1);
+  const maxNet = Math.max(...buyersInSet.map((b) => b.netPerQ), 1);
+
+  const cropPts = 10; // this buyer set already deals in the requested crop
+  const qualityPts = qualityMatch === "full" ? 20 : qualityMatch === "partial" ? 10 : 0;
+  const quantityPts = qtyFit === "match" ? 15 : 7;
+  const logisticsPts = Math.round((1 - buyer.distance / maxDistance) * 10);
+  const verifiedPts = 15; // all listed demo buyers are marked verified
+  const reliabilityPts = Math.round((buyer.reliability / 100) * 15);
+  const netPts = Math.round((Math.max(buyer.netPerQ, 0) / maxNet) * 15);
+
+  const score = Math.max(0, Math.min(100, cropPts + qualityPts + quantityPts + logisticsPts + verifiedPts + reliabilityPts + netPts));
+
+  const factors = [
+    { key: "crop", status: "good", pts: cropPts },
+    { key: "quality", status: qualityMatch === "full" ? "good" : qualityMatch === "partial" ? "warn" : "bad", pts: qualityPts },
+    { key: "quantity", status: qtyFit === "match" ? "good" : "warn", pts: quantityPts },
+    { key: "logistics", status: logisticsPts >= 6 ? "good" : "warn", pts: logisticsPts },
+    { key: "verification", status: "good", pts: verifiedPts },
+    { key: "reliability", status: buyer.reliability >= 90 ? "good" : "warn", pts: reliabilityPts },
+    { key: "net", status: netPts >= 12 ? "good" : "warn", pts: netPts },
+  ];
+
+  return { score, qualityMatch, factors };
+}
+
+function Badge({ children, tone = "green" }) {
+  return <span className={`badge badge-${tone}`}>{children}</span>;
+}
+
+function QualityStatusBadge({ status, t }) {
+  const map = {
+    declared: { label: t.qsDeclared, tone: "gray", icon: "📝" },
+    pending: { label: t.qsPending, tone: "saffron", icon: "⏳" },
+    verified: { label: t.qsVerified, tone: "green", icon: "✓" },
+    buyerConfirmed: { label: t.qsBuyerConfirmed, tone: "green", icon: "✅" },
+    disputed: { label: t.qsDisputed, tone: "saffron", icon: "⚠" },
+  };
+  const s = map[status] || map.declared;
+  return <Badge tone={s.tone}>{s.icon} {s.label}</Badge>;
+}
+
+function QualityMatchBadge({ level, t }) {
+  const map = {
+    full: { label: t.qualityMatchFull, tone: "green", icon: "✓" },
+    partial: { label: t.qualityMatchPartial, tone: "saffron", icon: "⚠" },
+    mismatch: { label: t.qualityMatchMismatch, tone: "gray", icon: "⚠" },
+  };
+  const s = map[level] || map.mismatch;
+  return <Badge tone={s.tone}>{s.icon} {s.label}</Badge>;
+}
+
+function StepDots({ step }) {
+  return (
+    <div className="stepdots">
+      {FLOW.map((s, i) => (
+        <span key={s} className={`dot ${i <= step ? "dot-on" : ""}`} />
+      ))}
+    </div>
+  );
+}
+
+function KisanSethu() {
+  const [lang, setLang] = useState(null);
+  const [screen, setScreen] = useState("welcome");
+  const [role, setRole] = useState("farmer");
+  const [cropForm, setCropForm] = useState({ crop: "Wheat", qty: 10, quality: "gradeA", location: "Nashik", window: "w7", harvestDate: "", moisture: "", notes: "", photoCount: 0 });
+  const [flowStep, setFlowStep] = useState(0);
+  const [selectedBuyer, setSelectedBuyer] = useState(null);
+  const [showWhy, setShowWhy] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [listings, setListings] = useState([]);
+  const [disputes, setDisputes] = useState([]);
+  const [qualityConfirmForTxId, setQualityConfirmForTxId] = useState(null);
+  const [qualityConfirmDraft, setQualityConfirmDraft] = useState({ quality: "gradeA", qty: "" });
+  const [expandedFarmer, setExpandedFarmer] = useState(null);
+  const [vehicleAssignForTxId, setVehicleAssignForTxId] = useState(null);
+  const [vehicleDraft, setVehicleDraft] = useState({ type: "mini", number: "" });
+  const [reportIssueForTxId, setReportIssueForTxId] = useState(null);
+  const [buyerPosts, setBuyerPosts] = useState([
+    { crop: "Onion", qty: "80 q", quality: "gradeA", location: "Nashik", price: 1850, window: "7 days", payment: "On delivery" },
+  ]);
+  const [postForm, setPostForm] = useState({ crop: "Wheat", qty: "", quality: "gradeA", location: "Nashik", price: "", window: "", payment: "" });
+  const [offerOpenFor, setOfferOpenFor] = useState(null);
+  const [offerDraft, setOfferDraft] = useState({ qty: "", price: "", payment: "", window: "" });
+  const [sentOffers, setSentOffers] = useState({});
+
+  const t = lang ? T[lang] : T.en;
+  const cropData = useMemo(() => buildCropData(cropForm.crop), [cropForm.crop]);
+  const rankedBuyers = useMemo(() => [...cropData.buyers].sort((a, b) => b.netPerQ - a.netPerQ), [cropData]);
+  const cropLabel = (c) => CROP_LABEL[c][lang || "en"];
+
+  const goFlow = (dir) => {
+    setFlowStep((s) => {
+      const next = Math.max(0, Math.min(FLOW.length - 1, s + dir));
+      setScreen(FLOW[next]);
+      return next;
+    });
+  };
+
+  const startFlow = () => {
+    // Creates the farmer's produce listing (Sell Produce) alongside
+    // starting the opportunity-matching flow. Quality status always
+    // starts as "declared" — it is never auto-marked Verified.
+    setListings((prev) => [
+      {
+        id: Date.now(),
+        crop: cropForm.crop,
+        qty: cropForm.qty,
+        quality: cropForm.quality,
+        location: cropForm.location,
+        harvestDate: cropForm.harvestDate,
+        moisture: cropForm.moisture,
+        notes: cropForm.notes,
+        photoCount: cropForm.photoCount,
+        qualityStatus: "declared",
+        verificationDate: null,
+      },
+      ...prev,
+    ]);
+    setFlowStep(0);
+    setScreen("market");
+  };
+
+  const confirmTransaction = (buyer) => {
+    setTransactions((prev) => [
+      {
+        id: Date.now(),
+        buyer: buyer.name,
+        crop: cropForm.crop,
+        qty: cropForm.qty,
+        net: buyer.netPerQ,
+        transportCostPerQ: buyer.transport,
+        storageCostPerQ: buyer.storage,
+        stage: 1,
+        agreedQuality: cropForm.quality,
+        agreedQty: cropForm.qty,
+        deliveredQuality: null,
+        deliveredQty: null,
+        qualityConfirmStatus: null, // null | "accepted" | "quality_differs" | "quantity_differs" | "issue_reported"
+        vehicle: null, // { type, number, pickup, destination, distanceKm, eta } — set once assigned
+        lastUpdated: Date.now(),
+      },
+      ...prev,
+    ]);
+    setScreen("transaction");
+  };
+
+  const advanceTxn = (id) => {
+    setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, stage: Math.min(9, tx.stage + 1), lastUpdated: Date.now() } : tx)));
+  };
+
+  const jumpTxn = (id, stage) => {
+    setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, stage: Math.min(9, stage), lastUpdated: Date.now() } : tx)));
+  };
+
+  const requestVehicleAssignment = (txId) => {
+    setVehicleAssignForTxId(txId);
+    setVehicleDraft({ type: "mini", number: "" });
+  };
+
+  const submitVehicleAssignment = (txId, buyerForTx) => {
+    const distanceKm = buyerForTx ? buyerForTx.distance : 100;
+    const number = vehicleDraft.number.trim() || `MH-${12 + Math.floor(Math.random() * 30)}-${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${1000 + Math.floor(Math.random() * 8999)}`;
+    setTransactions((prev) =>
+      prev.map((tx) =>
+        tx.id === txId
+          ? {
+              ...tx,
+              stage: 3,
+              lastUpdated: Date.now(),
+              vehicle: {
+                type: vehicleDraft.type,
+                number,
+                pickup: cropForm.location,
+                destination: buyerForTx ? buyerForTx.location : "",
+                distanceKm,
+                eta: formatEta(distanceKm),
+              },
+            }
+          : tx
+      )
+    );
+    setVehicleAssignForTxId(null);
+  };
+
+  const reportDeliveryIssue = (txId, issueType, txCrop) => {
+    setDisputes((prev) => [
+      { id: Date.now(), transactionId: txId, crop: txCrop, issueType, expectedQuality: null, reportedQuality: null, description: `Reported during delivery: ${issueType.replace("_", " ")}.`, status: "open" },
+      ...prev,
+    ]);
+    setReportIssueForTxId(null);
+  };
+
+  const requestQualityConfirmation = (txId) => {
+    setQualityConfirmForTxId(txId);
+    setQualityConfirmDraft({ quality: "gradeA", qty: "" });
+  };
+
+  const submitQualityConfirmation = (txId, choice) => {
+    setTransactions((prev) =>
+      prev.map((tx) => {
+        if (tx.id !== txId) return tx;
+        const statusMap = { accepted: "accepted", quality: "quality_differs", quantity: "quantity_differs", issue: "issue_reported" };
+        const deliveredQuality = choice === "quality" ? qualityConfirmDraft.quality : tx.agreedQuality;
+        const deliveredQty = choice === "quantity" && qualityConfirmDraft.qty ? Number(qualityConfirmDraft.qty) : tx.agreedQty;
+        return { ...tx, stage: 8, lastUpdated: Date.now(), qualityConfirmStatus: statusMap[choice], deliveredQuality, deliveredQty };
+      })
+    );
+
+    if (choice !== "accepted") {
+      const tx = transactions.find((t2) => t2.id === txId);
+      setDisputes((prev) => [
+        {
+          id: Date.now(),
+          transactionId: txId,
+          crop: tx ? tx.crop : cropForm.crop,
+          buyer: tx ? tx.buyer : "",
+          farmer: "Demo Farmer",
+          issueType: choice === "quality" ? "quality_mismatch" : choice === "quantity" ? "quantity_mismatch" : "other",
+          expectedQuality: tx ? tx.agreedQuality : cropForm.quality,
+          reportedQuality: choice === "quality" ? qualityConfirmDraft.quality : (tx ? tx.agreedQuality : cropForm.quality),
+          description: choice === "quality" ? "Buyer reported delivered quality differs from agreed grade." : choice === "quantity" ? "Buyer reported delivered quantity differs from agreed quantity." : "Buyer reported an issue at delivery.",
+          status: "open",
+        },
+        ...prev,
+      ]);
+    }
+
+    setQualityConfirmForTxId(null);
+  };
+
+  const verifyListing = (id) => {
+    setListings((prev) => prev.map((l) => (l.id === id ? { ...l, qualityStatus: "verified", verificationDate: new Date().toISOString().slice(0, 10) } : l)));
+  };
+
+  const setDisputeStatus = (id, status) => {
+    setDisputes((prev) => prev.map((d) => (d.id === id ? { ...d, status } : d)));
+  };
+
+  const sendOffer = (farmerKey) => {
+    setSentOffers((prev) => ({ ...prev, [farmerKey]: { ...offerDraft } }));
+    setOfferOpenFor(null);
+    setOfferDraft({ qty: "", price: "", payment: "", window: "" });
+  };
+
+  return (
+    <div className="app">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Baloo+2:wght@600;700;800&display=swap');
+        * { box-sizing: border-box; }
+        .app {
+          --saffron: #E07A1F; --saffron-deep:#C4630F; --saffron-tint:#FCE7CC;
+          --green: #1F6E45; --green-deep:#144E30; --green-tint:#DCEFE1;
+          --cream:#FBF7EF; --ink:#2A2318; --ink-soft:#6E6455; --border:#E9E0CC;
+          --card:#FFFFFF; --gold:#B8860B; --red:#B3401F;
+          font-family:'Mukta',sans-serif; background:var(--cream); color:var(--ink);
+          min-height:100%; width:100%; border-radius:14px; overflow:hidden;
+          display:flex; flex-direction:column;
+        }
+        .disp { font-family:'Baloo 2',sans-serif; }
+        button { font-family:inherit; cursor:pointer; }
+        input, select { font-family:inherit; }
+        .screen { padding: 22px 22px 30px; flex:1; }
+        /* WELCOME */
+        .welcome { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:520px; text-align:center; padding:40px 24px; background: radial-gradient(circle at 50% 0%, var(--saffron-tint), var(--cream) 60%); }
+        .welcome .crop-emoji { font-size:52px; margin-bottom:6px; }
+        .welcome h1 { font-size:30px; margin:4px 0 2px; color:var(--green-deep); }
+        .welcome .tag { color:var(--ink-soft); font-size:14px; margin-bottom:22px; }
+        .welcome .greet { font-size:20px; margin:2px 0; }
+        .welcome .greet2 { font-size:15px; color:var(--ink-soft); margin-bottom:20px; }
+        .lang-title { font-size:14px; color:var(--ink-soft); margin:18px 0 10px; }
+        .lang-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+        .lang-btn { border:2px solid var(--border); background:#fff; padding:10px 22px; border-radius:999px; font-size:16px; font-weight:600; color:var(--ink); }
+        .lang-btn.active { border-color:var(--green); background:var(--green-tint); color:var(--green-deep); }
+        .primary-btn { background:var(--saffron); color:#fff; border:none; padding:13px 26px; border-radius:10px; font-size:16px; font-weight:700; margin-top:22px; box-shadow:0 4px 0 var(--saffron-deep); }
+        .primary-btn:active { transform:translateY(2px); box-shadow:0 2px 0 var(--saffron-deep); }
+        .primary-btn:disabled { opacity:0.4; }
+        /* NAV */
+        .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:var(--green-deep); color:#fff; }
+        .topbar .brand { display:flex; align-items:center; gap:8px; font-weight:800; font-size:17px; }
+        .navlinks { display:flex; gap:4px; flex-wrap:wrap; }
+        .navlinks button { background:transparent; border:none; color:#EFEAD9; padding:7px 11px; border-radius:8px; font-size:13px; font-weight:600; }
+        .navlinks button.active { background:rgba(255,255,255,0.16); color:#fff; }
+        .navlinks button.admin { color:#F6D9A8; }
+        /* CARD */
+        .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; }
+        .card + .card { margin-top:12px; }
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+        @media (max-width:640px){ .grid4{grid-template-columns:repeat(2,1fr);} }
+        .stat-card { background:var(--green-tint); border-radius:14px; padding:14px; }
+        .stat-card .label { font-size:12px; color:var(--green-deep); font-weight:700; }
+        .stat-card .value { font-size:20px; font-weight:800; color:var(--ink); margin-top:4px; }
+        h2.section-title { font-size:19px; margin:0 0 12px; color:var(--green-deep); }
+        .subtle { color:var(--ink-soft); font-size:13px; }
+        .badge { display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; }
+        .badge-green { background:var(--green-tint); color:var(--green-deep); }
+        .badge-saffron { background:var(--saffron-tint); color:var(--saffron-deep); }
+        .badge-gray { background:#EEE9DC; color:var(--ink-soft); }
+        .row { display:flex; align-items:center; gap:8px; }
+        .between { justify-content:space-between; }
+        .form-field { margin-bottom:14px; }
+        .form-field label { display:block; font-size:13px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; }
+        .form-field select, .form-field input { width:100%; padding:11px 12px; border-radius:10px; border:1.5px solid var(--border); font-size:15px; background:#fff; }
+        .pillgroup { display:flex; gap:8px; flex-wrap:wrap; }
+        .pill { border:1.5px solid var(--border); background:#fff; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600; }
+        .pill.on { background:var(--saffron); border-color:var(--saffron); color:#fff; }
+        .market-row { display:flex; align-items:center; justify-content:space-between; padding:12px 4px; border-bottom:1px solid var(--border); }
+        .market-row:last-child { border-bottom:none; }
+        .trend-up { color:var(--green); font-weight:700; }
+        .trend-down { color:var(--red); font-weight:700; }
+        .bar-wrap { background:#EFE8D8; border-radius:6px; height:8px; overflow:hidden; margin-top:6px; }
+        .bar-fill { height:100%; background:var(--saffron); border-radius:6px; }
+        .buyer-card { border:1.5px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; }
+        .buyer-card .price { font-size:22px; font-weight:800; color:var(--green-deep); }
+        .kv { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; color:var(--ink-soft); }
+        .kv b { color:var(--ink); font-weight:700; }
+        .calc-line { display:flex; justify-content:space-between; padding:7px 0; font-size:14px; border-bottom:1px dashed var(--border); }
+        .calc-line.total { border-bottom:none; border-top:2px solid var(--ink); margin-top:4px; padding-top:10px; font-weight:800; font-size:17px; }
+        .neg { color:var(--red); }
+        .medal-card { border-radius:16px; padding:16px; margin-bottom:12px; border:2px solid var(--border); position:relative; }
+        .medal-card.first { border-color:var(--green); background:var(--green-tint); transform:scale(1.02); }
+        .medal { font-size:22px; }
+        .whybox { background:var(--saffron-tint); border-left:4px solid var(--saffron); padding:12px 14px; border-radius:10px; margin-top:10px; font-size:14px; }
+        .reco-card { background:linear-gradient(135deg, var(--green-tint), #fff); border:2px solid var(--green); border-radius:18px; padding:20px; }
+        .reco-star { font-size:15px; font-weight:800; color:var(--saffron-deep); letter-spacing:0.3px; }
+        .score-ring { width:64px; height:64px; border-radius:50%; background:conic-gradient(var(--green) 97%, #E9E0CC 0); display:flex; align-items:center; justify-content:center; }
+        .score-ring span { background:#fff; border-radius:50%; width:50px; height:50px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:var(--green-deep); }
+        .reason-list { margin:10px 0 0; padding-left:18px; font-size:14px; }
+        .reason-list li { margin-bottom:4px; }
+        .timeline { display:flex; flex-direction:column; }
+        .tstep { display:flex; gap:12px; align-items:flex-start; }
+        .tdot { width:14px; height:14px; border-radius:50%; background:var(--border); margin-top:3px; flex-shrink:0; }
+        .tdot.done { background:var(--green); }
+        .tline { width:2px; flex:1; background:var(--border); margin-left:6px; min-height:22px; }
+        .tline.done { background:var(--green); }
+        .flow-nav { display:flex; justify-content:space-between; margin-top:18px; }
+        .ghost-btn { background:transparent; border:1.5px solid var(--border); padding:10px 18px; border-radius:10px; font-weight:700; font-size:14px; color:var(--ink); }
+        .stepdots { display:flex; gap:6px; justify-content:center; margin-bottom:14px; }
+        .dot { width:7px; height:7px; border-radius:50%; background:var(--border); }
+        .dot-on { background:var(--saffron); }
+        .footer-note { text-align:center; padding:16px; font-size:13px; color:var(--green-deep); font-weight:700; border-top:1px solid var(--border); }
+        .sources-foot { text-align:center; font-size:11px; color:var(--ink-soft); padding:10px 16px 18px; }
+        table.admin-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+        table.admin-tbl th { text-align:left; color:var(--ink-soft); font-weight:700; padding:6px 4px; border-bottom:1.5px solid var(--border); }
+        table.admin-tbl td { padding:7px 4px; border-bottom:1px solid var(--border); }
+      `}</style>
+
+      {screen === "welcome" && (
+        <div className="welcome">
+          <div className="crop-emoji">🌾</div>
+          <div className="greet">नमस्कार 🙏</div>
+          <div className="greet2">आपला दिवस मंगलमय जावो</div>
+          <h1 className="disp">Kisan Sethu</h1>
+          <div className="tag">Intelligent Market Linkage for Farmers</div>
+          <div className="lang-title">भाषा निवडा / Choose Language</div>
+          <div className="lang-row">
+            <button className={`lang-btn ${lang === "mr" ? "active" : ""}`} onClick={() => setLang("mr")}>मराठी</button>
+            <button className={`lang-btn ${lang === "en" ? "active" : ""}`} onClick={() => setLang("en")}>English</button>
+            <button className={`lang-btn ${lang === "hi" ? "active" : ""}`} onClick={() => setLang("hi")}>हिंदी</button>
+          </div>
+          <button className="primary-btn" disabled={!lang} onClick={() => setScreen("dashboard")}>{t.continueBtn}</button>
+        </div>
+      )}
+
+      {screen !== "welcome" && (
+        <>
+          <div className="topbar">
+            <div className="brand">🌾 Kisan Sethu</div>
+            <div className="navlinks">
+              <button className={screen === "dashboard" ? "active" : ""} onClick={() => { setRole("farmer"); setScreen("dashboard"); }}>{t.navHome}</button>
+              <button className={screen === "market" && flowStep === 0 ? "active" : ""} onClick={() => { setRole("farmer"); setFlowStep(0); setScreen("market"); }}>{t.navMarket}</button>
+              <button className={screen === "ranking" ? "active" : ""} onClick={() => { setRole("farmer"); setFlowStep(4); setScreen("ranking"); }}>{t.navOpp}</button>
+              <button className={screen === "transaction" ? "active" : ""} onClick={() => { setRole("farmer"); setScreen("transaction"); }}>{t.navTxn}</button>
+              <button className={screen === "buyerportal" ? "active" : ""} onClick={() => { setRole("buyer"); setScreen("buyerportal"); }}>{t.navBuyer}</button>
+              <button className={`admin ${screen === "admin" ? "active" : ""}`} onClick={() => { setRole("admin"); setScreen("admin"); }}>{t.navAdmin}</button>
+            </div>
+          </div>
+
+          <div className="screen">
+            {screen === "dashboard" && (
+              <div>
+                <div className="row between" style={{ marginBottom: 14 }}>
+                  <div>
+                    <div className="disp" style={{ fontSize: 21, fontWeight: 700 }}>{t.dashboardGreeting}</div>
+                    <div className="subtle">{t.demoFarmer} · {cropForm.location}, Maharashtra</div>
+                  </div>
+                  <Badge>{t.verifiedFarmer} ✓</Badge>
+                </div>
+                <div className="grid4">
+                  <div className="stat-card"><div className="label">{t.statPrice}</div><div className="value">₹{cropData.base.toLocaleString("en-IN")}/q</div></div>
+                  <div className="stat-card"><div className="label">{t.statDemand}</div><div className="value">{t.high}</div></div>
+                  <div className="stat-card"><div className="label">{t.statBest}</div><div className="value">₹{rankedBuyers[0].netPerQ.toLocaleString("en-IN")}/q</div></div>
+                  <div className="stat-card"><div className="label">{t.statNet}</div><div className="value">₹{(rankedBuyers[0].netPerQ * cropForm.qty).toLocaleString("en-IN")}</div></div>
+                </div>
+                <button className="primary-btn" onClick={() => setScreen("cropform")}>{t.cta}</button>
+                <div className="subtle" style={{ marginTop: 8, fontStyle: "italic" }}>{t.trustTagline}</div>
+                <h2 className="section-title" style={{ marginTop: 26 }}>{t.mhMarkets}</h2>
+                <div className="card">
+                  {cropData.markets.slice(0, 3).map((m) => (
+                    <div className="market-row" key={m.name}>
+                      <div>{m.name}</div>
+                      <div className="row">
+                        <span>₹{m.price.toLocaleString("en-IN")}/q</span>
+                        <span className={m.trend >= 0 ? "trend-up" : "trend-down"}>{m.trend >= 0 ? "↑" : "↓"} {Math.abs(m.trend)}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {screen === "cropform" && (
+              <div className="card">
+                <div className="row between">
+                  <h2 className="section-title">{t.formTitle}</h2>
+                  <Badge tone="saffron">{t.sellProduceTitle}</Badge>
+                </div>
+                <div className="form-field">
+                  <label>{t.labelCrop}</label>
+                  <select value={cropForm.crop} onChange={(e) => setCropForm({ ...cropForm, crop: e.target.value })}>
+                    {CROPS.map((c) => <option key={c} value={c}>{cropLabel(c)}</option>)}
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label>{t.labelQty}</label>
+                  <input type="number" min="1" value={cropForm.qty} onChange={(e) => setCropForm({ ...cropForm, qty: Number(e.target.value) || 0 })} />
+                </div>
+                <div className="form-field">
+                  <label>{t.labelQuality}</label>
+                  <div className="pillgroup">
+                    <button className={`pill ${cropForm.quality === "gradeA" ? "on" : ""}`} onClick={() => setCropForm({ ...cropForm, quality: "gradeA" })}>{t.gradeA}</button>
+                    <button className={`pill ${cropForm.quality === "gradeB" ? "on" : ""}`} onClick={() => setCropForm({ ...cropForm, quality: "gradeB" })}>{t.gradeB}</button>
+                  </div>
+                  <div className="subtle" style={{ marginTop: 6 }}>{t.farmerDeclaredInfo}</div>
+                </div>
+                <div className="form-field">
+                  <label>{t.harvestDate}</label>
+                  <input type="date" value={cropForm.harvestDate} onChange={(e) => setCropForm({ ...cropForm, harvestDate: e.target.value })} />
+                </div>
+                <div className="form-field">
+                  <label>{t.moisture}</label>
+                  <input type="number" min="0" max="100" placeholder="e.g. 12" value={cropForm.moisture} onChange={(e) => setCropForm({ ...cropForm, moisture: e.target.value })} />
+                </div>
+                <div className="form-field">
+                  <label>{t.qualityNotes}</label>
+                  <input placeholder="e.g. Clean and properly dried" value={cropForm.notes} onChange={(e) => setCropForm({ ...cropForm, notes: e.target.value })} />
+                </div>
+                <div className="form-field">
+                  <label>{t.photosLabel}</label>
+                  <div className="row">
+                    <button type="button" className="ghost-btn" onClick={() => setCropForm({ ...cropForm, photoCount: cropForm.photoCount + 1 })}>{t.addPhotoDemo}</button>
+                    {cropForm.photoCount > 0 && <span className="subtle">{t.photosAddedCount(cropForm.photoCount)}</span>}
+                  </div>
+                </div>
+                <div className="form-field">
+                  <label>{t.labelLoc}</label>
+                  <select value={cropForm.location} onChange={(e) => setCropForm({ ...cropForm, location: e.target.value })}>
+                    {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label>{t.labelWindow}</label>
+                  <div className="pillgroup">
+                    <button className={`pill ${cropForm.window === "w3" ? "on" : ""}`} onClick={() => setCropForm({ ...cropForm, window: "w3" })}>{t.w3}</button>
+                    <button className={`pill ${cropForm.window === "w7" ? "on" : ""}`} onClick={() => setCropForm({ ...cropForm, window: "w7" })}>{t.w7}</button>
+                    <button className={`pill ${cropForm.window === "w15" ? "on" : ""}`} onClick={() => setCropForm({ ...cropForm, window: "w15" })}>{t.w15}</button>
+                  </div>
+                </div>
+                <button className="primary-btn" onClick={startFlow}>{t.findBtn}</button>
+              </div>
+            )}
+
+            {FLOW.includes(screen) && (
+              <div>
+                <StepDots step={flowStep} />
+
+                {screen === "market" && (
+                  <div className="card">
+                    <div className="row between"><h2 className="section-title">{t.marketTitle}</h2><Badge tone="saffron">{t.demoLabel}</Badge></div>
+                    {listings.length > 0 && (
+                      <div className="whybox" style={{ marginBottom: 12 }}>
+                        <div style={{ fontWeight: 700 }}>✓ {t.listingCreatedMsg}</div>
+                        <div className="row" style={{ marginTop: 6 }}>
+                          <span className="subtle">{t.qualityStatusLabel}:</span>
+                          <QualityStatusBadge status={listings[0].qualityStatus} t={t} />
+                        </div>
+                      </div>
+                    )}
+                    <p className="subtle">{cropLabel(cropForm.crop)} · {cropForm.qty} q · {cropForm.quality === "gradeA" ? t.gradeA : t.gradeB}</p>
+                    {cropData.markets.map((m) => (
+                      <div className="market-row" key={m.name}>
+                        <div>
+                          <div style={{ fontWeight: 700 }}>{m.name}</div>
+                          <div className="subtle">{t.demand}: {m.demand === "high" ? t.high : t.medium}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontWeight: 800 }}>₹{m.price.toLocaleString("en-IN")}/q</div>
+                          <div className={m.trend >= 0 ? "trend-up" : "trend-down"}>{m.trend >= 0 ? "↑" : "↓"} {Math.abs(m.trend)}%</div>
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{ marginTop: 12 }}>
+                      <div className="subtle" style={{ marginBottom: 4 }}>{t.modalPrice} — {t.trend}</div>
+                      {cropData.markets.map((m) => (
+                        <div key={m.name} style={{ marginBottom: 6 }}>
+                          <div className="row between" style={{ fontSize: 12 }}><span>{m.name}</span><span>₹{m.price}</span></div>
+                          <div className="bar-wrap"><div className="bar-fill" style={{ width: `${Math.min(100, (m.price / (cropData.base * 1.1)) * 100)}%` }} /></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {screen === "buyers" && (
+                  <div>
+                    <h2 className="section-title">{t.buyersTitle}</h2>
+                    {cropData.buyers.map((b) => {
+                      const qm = checkQualityMatch(cropForm.quality, b.quality);
+                      const ms = computeMatchScore(b, cropForm, cropData.buyers);
+                      return (
+                        <div className="buyer-card" key={b.id}>
+                          <div className="row between">
+                            <div>
+                              <div style={{ fontWeight: 800 }}>{b.name}</div>
+                              <div className="subtle">{b.location}, Maharashtra</div>
+                            </div>
+                            <Badge>{t.verifiedBuyer} ✓</Badge>
+                          </div>
+                          <div className="price" style={{ marginTop: 8 }}>₹{b.offer.toLocaleString("en-IN")}/q</div>
+                          <div className="kv"><span>{t.qualityReq}</span><b>{b.quality === "gradeA" ? t.gradeA : t.gradeB}</b></div>
+                          <div className="kv"><span>{t.qtyReq}</span><b>{b.qtyReq}</b></div>
+                          <div className="kv"><span>{t.paymentTerms}</span><b>{b.payment}</b></div>
+                          <div className="kv"><span>{t.reliability}</span><b>{b.reliability}/100</b></div>
+                          <div className="kv"><span>{t.statNet}</span><b>₹{b.netPerQ}/q</b></div>
+                          <div className="row" style={{ marginTop: 8, flexWrap: "wrap", gap: 6 }}>
+                            <QualityMatchBadge level={qm} t={t} />
+                            <Badge tone="saffron">{t.matchScore}: {ms.score}/100</Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {screen === "logistics" && (
+                  <div>
+                    <h2 className="section-title">{t.logisticsTitle}</h2>
+                    {cropData.buyers.map((b) => (
+                      <div className="card" key={b.id}>
+                        <div style={{ fontWeight: 700, marginBottom: 6 }}>{b.name}</div>
+                        <div className="kv"><span>{t.distance}</span><b>{b.distance} km</b></div>
+                        <div className="kv"><span>{t.transportCost}</span><b>₹{b.transport}/q</b></div>
+                        <div className="kv"><span>{t.storageCost}</span><b>₹{b.storage}/q</b></div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {screen === "netreal" && (
+                  <div>
+                    <h2 className="section-title">{t.netTitle}</h2>
+                    {cropData.buyers.map((b) => (
+                      <div className="card" key={b.id}>
+                        <div style={{ fontWeight: 700, marginBottom: 6 }}>{b.name}</div>
+                        <div className="calc-line"><span>{t.sellingValue}</span><span>₹{b.offer}/q</span></div>
+                        <div className="calc-line"><span>{t.logisticsCostLbl || t.transportCost}</span><span className="neg">−₹{b.transport}/q</span></div>
+                        <div className="calc-line"><span>{t.storageCostLbl || t.storageCost}</span><span className="neg">−₹{b.storage}/q</span></div>
+                        <div className="calc-line total"><span>{t.statNet}</span><span>₹{b.netPerQ}/q</span></div>
+                        <div className="subtle" style={{ marginTop: 6 }}>{t.totalNet} ({cropForm.qty} q): ₹{(b.netPerQ * cropForm.qty).toLocaleString("en-IN")}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {screen === "ranking" && (
+                  <div>
+                    <h2 className="section-title">{t.rankingTitle}</h2>
+                    <div className="whybox" style={{ marginTop: 0, marginBottom: 14, fontWeight: 700 }}>{t.priceVsNet}</div>
+                    {rankedBuyers.map((b, i) => {
+                      const qm = checkQualityMatch(cropForm.quality, b.quality);
+                      const qtyFit = checkQtyFit(cropForm.qty, b.qtyReq);
+                      const ms = computeMatchScore(b, cropForm, cropData.buyers);
+                      return (
+                        <div className={`medal-card ${i === 0 ? "first" : ""}`} key={b.id}>
+                          <div className="row between">
+                            <div className="row"><span className="medal">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</span><b>{b.name}</b></div>
+                            {i === 0 && <Badge>{t.bestOpp}</Badge>}
+                          </div>
+                          <div style={{ fontSize: 22, fontWeight: 800, marginTop: 6 }}>₹{b.netPerQ}/{t.perQ.split(" ")[t.perQ.split(" ").length - 1]}</div>
+                          <div className="subtle" style={{ marginTop: 2 }}>{t.offerPrice}: ₹{b.offer}/q · {t.transportCost} ₹{b.transport}/q · {t.storageCost} ₹{b.storage}/q</div>
+                          <div className="row" style={{ marginTop: 8, flexWrap: "wrap", gap: 6 }}>
+                            <Badge tone="green">{t.verifiedBuyer} ✓</Badge>
+                            <QualityMatchBadge level={qm} t={t} />
+                            <Badge tone={qtyFit === "match" ? "green" : "gray"}>{t.quantityFit}: {qtyFit === "match" ? t.fitMatch : t.fitPartial}</Badge>
+                            <Badge tone="saffron">{t.reliability}: {b.reliability}/100</Badge>
+                            <Badge tone="saffron">{t.matchScore}: {ms.score}/100</Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <button className="ghost-btn" onClick={() => setShowWhy((s) => !s)}>{t.whyBest}</button>
+                    {showWhy && <div className="whybox">{t.whyBestA(rankedBuyers[0].name)}</div>}
+                  </div>
+                )}
+
+                {screen === "recommend" && (() => {
+                  const topBuyer = rankedBuyers[0];
+                  const ms = computeMatchScore(topBuyer, cropForm, cropData.buyers);
+                  const factorLabel = { crop: t.factorCrop, quality: t.factorQuality, quantity: t.factorQuantity, logistics: t.factorLogistics, verification: t.factorVerification, reliability: t.factorReliability, net: t.factorNet };
+                  return (
+                    <div className="reco-card">
+                      <div className="reco-star">⭐ {t.recommendTitle.toUpperCase()}</div>
+                      <div className="row between" style={{ marginTop: 12 }}>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: 18 }}>{topBuyer.name}</div>
+                          <Badge>{t.verifiedBuyer} ✓</Badge>
+                        </div>
+                        <div className="score-ring" style={{ background: `conic-gradient(var(--green) ${ms.score}%, #E9E0CC 0)` }}><span>{ms.score}/100</span></div>
+                      </div>
+                      <div className="kv" style={{ marginTop: 12 }}><span>{t.offerPrice}</span><b>₹{topBuyer.offer}/q</b></div>
+                      <div className="kv"><span>{t.transportCost}</span><b>₹{topBuyer.transport}/q</b></div>
+                      <div className="kv"><span>{t.storageCost}</span><b>₹{topBuyer.storage}/q</b></div>
+                      <div className="kv"><span>{t.statNet}</span><b>₹{topBuyer.netPerQ}/q</b></div>
+                      <div className="kv"><span>{t.qualityMatchLabel}</span><b><QualityMatchBadge level={ms.qualityMatch} t={t} /></b></div>
+                      <div style={{ marginTop: 10, fontWeight: 700, fontSize: 13 }}>{t.matchBreakdownTitle}:</div>
+                      <ul className="reason-list">
+                        {ms.factors.map((f) => (
+                          <li key={f.key}>{f.status === "good" ? "✓" : "⚠"} {factorLabel[f.key]} (+{f.pts})</li>
+                        ))}
+                      </ul>
+                      <button className="primary-btn" onClick={() => confirmTransaction(topBuyer)}>{t.connectBtn}</button>
+                    </div>
+                  );
+                })()}
+
+                {screen === "transaction" && transactions.length === 0 && (
+                  <div className="card"><p className="subtle">{t.txnTitle} — {lang === "mr" ? "अजून कोणताही व्यवहार नाही." : lang === "hi" ? "अभी कोई लेनदेन नहीं है।" : "No transactions yet."}</p></div>
+                )}
+                {screen === "transaction" && transactions.map((tx) => {
+                  const stages = [t.stSent, t.stAccepted, t.stVehicleAssigned, t.stPickupConfirmed, t.stInTransit, t.stNearDestination, t.stDelivered, t.stQualityConfirm, t.stPayment];
+                  const stageActionLabel = [null, null, t.assignVehicleBtn, t.confirmPickupBtn, t.startTransitBtn, t.markNearDestBtn, t.markDeliveredBtn, null, t.next];
+                  const buyerRec = BUYER_TEMPLATE.find((b) => b.name === tx.buyer);
+                  const txDisputes = disputes.filter((d) => d.transactionId === tx.id);
+                  const confirmOpen = qualityConfirmForTxId === tx.id;
+                  const vehicleFormOpen = vehicleAssignForTxId === tx.id;
+                  const issueFormOpen = reportIssueForTxId === tx.id;
+                  const issueLabelFor = (type) => ({
+                    quality_mismatch: t.issueQualityMismatch, quantity_mismatch: t.issueQuantityMismatch,
+                    vehicle_delay: t.issueVehicleDelay, wrong_route: t.issueWrongRoute, delivery_issue: t.issueDeliveryIssue,
+                    damaged_produce: t.issueDamagedProduce, missing_produce: t.issueMissingProduce, other: t.issueReported,
+                  }[type] || t.issueReported);
+
+                  return (
+                    <div className="card" key={tx.id}>
+                      <div className="row between"><div style={{ fontWeight: 800 }}>{tx.buyer}</div><Badge tone="saffron">{t.demoTxn}</Badge></div>
+                      <div className="subtle" style={{ marginBottom: 10 }}>{cropLabel(tx.crop)} · {tx.qty} q · ₹{tx.net}/q · {t.transportCost}: ₹{tx.transportCostPerQ}/q</div>
+
+                      {tx.vehicle && (
+                        <div className="card" style={{ marginBottom: 10, background: "var(--green-tint)" }}>
+                          <div className="row between"><b>📦 {t.trackingCardTitle}</b><Badge tone="saffron">{t.demoTrackingLabel}</Badge></div>
+                          <div className="kv"><span>{t.vehicleType}</span><b>{vehicleTypeLabel(tx.vehicle.type, t)}</b></div>
+                          <div className="kv"><span>{t.vehicleNumber}</span><b>{tx.vehicle.number}</b></div>
+                          <div className="kv"><span>{t.fromLabel}</span><b>{tx.vehicle.pickup}</b></div>
+                          <div className="kv"><span>{t.toLabel}</span><b>{tx.vehicle.destination}</b></div>
+                          <div className="kv"><span>{t.distance}</span><b>{tx.vehicle.distanceKm} km</b></div>
+                          <div className="kv"><span>{t.etaLabel}</span><b>{tx.vehicle.eta}</b></div>
+                          <div className="kv"><span>{t.vehicleStatus}</span><b>{transportStatusLabel(tx, t)}</b></div>
+                          <div className="kv"><span>{t.lastUpdatedLbl}</span><b>{new Date(tx.lastUpdated).toLocaleString(lang === "hi" ? "hi-IN" : lang === "mr" ? "mr-IN" : "en-IN")}</b></div>
+                        </div>
+                      )}
+
+                      <div className="timeline">
+                        {stages.map((s, i) => (
+                          <div className="tstep" key={s}>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                              <button
+                                aria-label={s}
+                                onClick={() => {
+                                  if (i === 2 && tx.stage === 2) { requestVehicleAssignment(tx.id); return; }
+                                  if (i === 7 && tx.stage === 7) { requestQualityConfirmation(tx.id); return; }
+                                  if ((i + 1) >= tx.stage) jumpTxn(tx.id, i + 1);
+                                }}
+                                className="tdot"
+                                style={{ border: "none", padding: 0, cursor: (i + 1) >= tx.stage ? "pointer" : "default", background: i < tx.stage ? "var(--green)" : "var(--border)" }}
+                              >
+                                <span style={{ fontSize: 8, color: "#fff" }}>{i < tx.stage ? "✓" : i === tx.stage ? "●" : ""}</span>
+                              </button>
+                              {i < stages.length - 1 && <div className={`tline ${i < tx.stage - 1 ? "done" : ""}`} />}
+                            </div>
+                            <div style={{ paddingBottom: 14, fontSize: 14, fontWeight: i < tx.stage ? 700 : 400, color: i < tx.stage ? "var(--ink)" : "var(--ink-soft)" }}>{s}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {vehicleFormOpen && (
+                        <div className="whybox">
+                          <div style={{ fontWeight: 700, marginBottom: 8 }}>{t.vehicleSectionTitle}</div>
+                          <div className="form-field"><label>{t.vehicleType}</label>
+                            <select value={vehicleDraft.type} onChange={(e) => setVehicleDraft({ ...vehicleDraft, type: e.target.value })}>
+                              {VEHICLE_TYPES.map((v) => <option key={v} value={v}>{vehicleTypeLabel(v, t)}</option>)}
+                            </select>
+                          </div>
+                          <div className="form-field"><label>{t.vehicleNumber}</label>
+                            <input placeholder="MH-15-AB-1234" value={vehicleDraft.number} onChange={(e) => setVehicleDraft({ ...vehicleDraft, number: e.target.value })} />
+                          </div>
+                          <div className="subtle">{t.pickupLocation}: {cropForm.location} · {t.destinationLoc}: {buyerRec ? buyerRec.location : "—"} · {t.distance}: {buyerRec ? buyerRec.distance : "—"} km · {t.estDeliveryTime}: {buyerRec ? formatEta(buyerRec.distance) : "—"}</div>
+                          <button className="primary-btn" onClick={() => submitVehicleAssignment(tx.id, buyerRec)}>{t.assignVehicleBtn}</button>
+                        </div>
+                      )}
+
+                      {confirmOpen && (
+                        <div className="whybox">
+                          <div style={{ fontWeight: 700, marginBottom: 8 }}>{t.buyerQualityConfirmTitle}</div>
+                          <div className="pillgroup" style={{ marginBottom: 8 }}>
+                            <button className="pill" onClick={() => submitQualityConfirmation(tx.id, "accepted")}>✓ {t.optAccepted}</button>
+                            <button className="pill" onClick={() => setQualityConfirmDraft({ ...qualityConfirmDraft, _mode: "quality" })}>⚠ {t.optQualityDiffers}</button>
+                            <button className="pill" onClick={() => setQualityConfirmDraft({ ...qualityConfirmDraft, _mode: "quantity" })}>⚠ {t.optQuantityDiffers}</button>
+                            <button className="pill" onClick={() => submitQualityConfirmation(tx.id, "issue")}>⚠ {t.optReportIssue}</button>
+                          </div>
+                          {qualityConfirmDraft._mode === "quality" && (
+                            <div className="row">
+                              <select value={qualityConfirmDraft.quality} onChange={(e) => setQualityConfirmDraft({ ...qualityConfirmDraft, quality: e.target.value })}>
+                                <option value="gradeA">{t.gradeA}</option>
+                                <option value="gradeB">{t.gradeB}</option>
+                              </select>
+                              <button className="primary-btn" style={{ marginTop: 0 }} onClick={() => submitQualityConfirmation(tx.id, "quality")}>{t.next}</button>
+                            </div>
+                          )}
+                          {qualityConfirmDraft._mode === "quantity" && (
+                            <div className="row">
+                              <input type="number" placeholder="e.g. 38" value={qualityConfirmDraft.qty} onChange={(e) => setQualityConfirmDraft({ ...qualityConfirmDraft, qty: e.target.value })} />
+                              <button className="primary-btn" style={{ marginTop: 0 }} disabled={!qualityConfirmDraft.qty} onClick={() => submitQualityConfirmation(tx.id, "quantity")}>{t.next}</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {tx.stage >= 8 && (
+                        <div className="grid2" style={{ marginTop: 10 }}>
+                          <div className="card" style={{ padding: 10 }}>
+                            <div className="subtle" style={{ fontWeight: 700 }}>{t.agreedAtSale}</div>
+                            <div>{tx.agreedQuality === "gradeA" ? t.gradeA : t.gradeB} · {tx.agreedQty} q</div>
+                          </div>
+                          <div className="card" style={{ padding: 10 }}>
+                            <div className="subtle" style={{ fontWeight: 700 }}>{t.deliveryConfirmationLbl}</div>
+                            <div>{tx.deliveredQuality === "gradeA" ? t.gradeA : t.gradeB} · {tx.deliveredQty} q</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {txDisputes.map((dispute) => (
+                        <div className="whybox" style={{ marginTop: 10 }} key={dispute.id}>
+                          <div className="row between"><b>⚠ {t.disputeTitle}</b><Badge tone={dispute.status === "resolved" ? "green" : "saffron"}>{dispute.status === "open" ? t.disputeOpen : dispute.status === "review" ? t.disputeReview : t.disputeResolved}</Badge></div>
+                          <div className="subtle">{t.issueType}: {issueLabelFor(dispute.issueType)}</div>
+                        </div>
+                      ))}
+
+                      {issueFormOpen ? (
+                        <div className="whybox">
+                          <div style={{ fontWeight: 700, marginBottom: 8 }}>{t.reportDeliveryIssueBtn}</div>
+                          <div className="pillgroup">
+                            {["vehicle_delay", "wrong_route", "delivery_issue", "damaged_produce", "missing_produce"].map((it) => (
+                              <button className="pill" key={it} onClick={() => reportDeliveryIssue(tx.id, it, tx.crop)}>{issueLabelFor(it)}</button>
+                            ))}
+                          </div>
+                          <button className="ghost-btn" style={{ marginTop: 8 }} onClick={() => setReportIssueForTxId(null)}>{t.back}</button>
+                        </div>
+                      ) : (
+                        tx.stage >= 3 && tx.stage <= 6 && <button className="ghost-btn" onClick={() => setReportIssueForTxId(tx.id)}>{t.reportDeliveryIssueBtn}</button>
+                      )}
+
+                      {tx.stage < 9 && !confirmOpen && !vehicleFormOpen && tx.stage !== 2 && tx.stage !== 7 &&
+                        <button className="ghost-btn" onClick={() => advanceTxn(tx.id)}>{stageActionLabel[tx.stage] || t.next} →</button>}
+                      {tx.stage === 2 && !vehicleFormOpen && <button className="ghost-btn" onClick={() => requestVehicleAssignment(tx.id)}>{t.assignVehicleBtn} →</button>}
+                      {tx.stage === 7 && !confirmOpen && <button className="ghost-btn" onClick={() => requestQualityConfirmation(tx.id)}>{t.next} →</button>}
+
+                      <div className="subtle" style={{ marginTop: 10, fontSize: 11 }}>{t.gpsFutureNote}</div>
+                    </div>
+                  );
+                })}
+
+                {screen !== "transaction" && (
+                  <div className="flow-nav">
+                    <button className="ghost-btn" onClick={() => (flowStep === 0 ? setScreen("cropform") : goFlow(-1))}>← {t.back}</button>
+                    {screen !== "recommend" && <button className="primary-btn" style={{ marginTop: 0 }} onClick={() => goFlow(1)}>{t.next} →</button>}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {screen === "buyerportal" && (
+              <div>
+                <h2 className="section-title">{t.buyerPortalTitle}</h2>
+                <div className="card">
+                  <div style={{ fontWeight: 700, marginBottom: 10 }}>{t.postReq}</div>
+                  <div className="grid2">
+                    <div className="form-field"><label>{t.labelCrop}</label>
+                      <select value={postForm.crop} onChange={(e) => setPostForm({ ...postForm, crop: e.target.value })}>
+                        {CROPS.map((c) => <option key={c} value={c}>{cropLabel(c)}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-field"><label>{t.labelQty}</label>
+                      <input placeholder="e.g. 50" value={postForm.qty} onChange={(e) => setPostForm({ ...postForm, qty: e.target.value })} />
+                    </div>
+                    <div className="form-field"><label>{t.labelQuality}</label>
+                      <select value={postForm.quality} onChange={(e) => setPostForm({ ...postForm, quality: e.target.value })}>
+                        <option value="gradeA">{t.gradeA}</option><option value="gradeB">{t.gradeB}</option>
+                      </select>
+                    </div>
+                    <div className="form-field"><label>{t.labelLoc}</label>
+                      <select value={postForm.location} onChange={(e) => setPostForm({ ...postForm, location: e.target.value })}>
+                        {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-field"><label>{t.offerPrice} (₹/q)</label>
+                      <input placeholder="e.g. 3100" value={postForm.price} onChange={(e) => setPostForm({ ...postForm, price: e.target.value })} />
+                    </div>
+                    <div className="form-field"><label>{t.paymentTerms}</label>
+                      <input placeholder="e.g. On delivery" value={postForm.payment} onChange={(e) => setPostForm({ ...postForm, payment: e.target.value })} />
+                    </div>
+                  </div>
+                  <button className="primary-btn" onClick={() => {
+                    if (!postForm.qty || !postForm.price) return;
+                    setBuyerPosts((prev) => [{ ...postForm, window: "7 days" }, ...prev]);
+                    setPostForm({ ...postForm, qty: "", price: "", payment: "" });
+                  }}>{t.postReq}</button>
+                </div>
+
+                <h2 className="section-title" style={{ marginTop: 22 }}>{t.matchingFarmers}</h2>
+                {FARMER_RECORDS.map((f) => {
+                  const displayName = { ramesh: { mr: "रमेश पाटील", hi: "रमेश पाटिल", en: "Ramesh Patil" }, sunita: { mr: "सुनिता जाधव", hi: "सुनीता जाधव", en: "Sunita Jadhav" } }[f.key][lang || "en"];
+                  const sent = sentOffers[f.key];
+                  const expanded = expandedFarmer === f.key;
+                  return (
+                    <div className="buyer-card" key={f.key}>
+                      <div className="row between">
+                        <div><div style={{ fontWeight: 700 }}>{displayName}</div><div className="subtle">{f.loc}, Maharashtra</div></div>
+                        <Badge>{t.verifiedFarmer} ✓</Badge>
+                      </div>
+                      <div className="kv"><span>{t.labelCrop}</span><b>{cropLabel(f.crop)}</b></div>
+                      <div className="kv"><span>{t.labelQty}</span><b>{f.qty} q</b></div>
+                      <button className="ghost-btn" style={{ marginTop: 4, marginBottom: 8 }} onClick={() => setExpandedFarmer(expanded ? null : f.key)}>{t.qualityDetailsCardTitle}</button>
+
+                      {expanded && (
+                        <div className="card" style={{ marginBottom: 10 }}>
+                          <div className="row between"><b>{t.qualityDetailsCardTitle}</b><QualityStatusBadge status={f.qualityStatus} t={t} /></div>
+                          <div className="kv"><span>{t.labelQuality}</span><b>{f.quality === "gradeA" ? t.gradeA : t.gradeB}</b></div>
+                          <div className="kv"><span>{t.moisture}</span><b>{f.moisture}%</b></div>
+                          <div className="kv"><span>{t.harvestDate}</span><b>{f.harvestDate}</b></div>
+                          <div className="kv"><span>{t.labelQty}</span><b>{f.qty} q</b></div>
+                          <button className="ghost-btn" style={{ marginTop: 6 }} onClick={() => window.alert(t.viewPhotosBtn)}>{t.viewPhotosBtn}</button>
+                        </div>
+                      )}
+
+                      {sent ? (
+                        <Badge tone="green">{t.offerSentLabel}</Badge>
+                      ) : offerOpenFor === f.key ? (
+                        <div style={{ marginTop: 10 }}>
+                          <div className="form-field"><label>{t.labelQty}</label>
+                            <input placeholder="e.g. 40" value={offerDraft.qty} onChange={(e) => setOfferDraft({ ...offerDraft, qty: e.target.value })} />
+                          </div>
+                          <div className="form-field"><label>{t.offerPrice} (₹/q)</label>
+                            <input placeholder="e.g. 3100" value={offerDraft.price} onChange={(e) => setOfferDraft({ ...offerDraft, price: e.target.value })} />
+                          </div>
+                          <div className="form-field"><label>{t.paymentTerms}</label>
+                            <input placeholder="e.g. On delivery" value={offerDraft.payment} onChange={(e) => setOfferDraft({ ...offerDraft, payment: e.target.value })} />
+                          </div>
+                          <div className="form-field"><label>{t.labelDeliveryWindow}</label>
+                            <input placeholder="e.g. 7 days" value={offerDraft.window} onChange={(e) => setOfferDraft({ ...offerDraft, window: e.target.value })} />
+                          </div>
+                          <div className="row">
+                            <button className="primary-btn" style={{ marginTop: 0 }} disabled={!offerDraft.qty || !offerDraft.price} onClick={() => sendOffer(f.key)}>{t.sendOfferBtn}</button>
+                            <button className="ghost-btn" onClick={() => setOfferOpenFor(null)}>{t.back}</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button className="ghost-btn" style={{ marginTop: 8 }} onClick={() => { setOfferOpenFor(f.key); setOfferDraft({ qty: "", price: "", payment: "", window: "" }); }}>{t.makeOffer}</button>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <h2 className="section-title" style={{ marginTop: 22 }}>{t.postReq}</h2>
+                {buyerPosts.map((p, i) => (
+                  <div className="card" key={i}>
+                    <div className="row between"><b>{cropLabel(p.crop)}</b><span>₹{p.price}/q</span></div>
+                    <div className="subtle">{p.location} · {p.qty} · {p.quality === "gradeA" ? t.gradeA : t.gradeB}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {screen === "admin" && (
+              <div>
+                <div className="row between">
+                  <h2 className="section-title">{t.adminTitle}</h2>
+                  <Badge tone="saffron">{t.demoAdminLabel}</Badge>
+                </div>
+                <p className="subtle" style={{ marginTop: -6, marginBottom: 14 }}>
+                  {lang === "mr" ? "खालील आकडे या नमुन्यातील नोंदींवरून मोजले आहेत — ती वास्तविक सरकारी आकडेवारी नाही." :
+                   lang === "hi" ? "नीचे दिए आंकड़े इसी प्रोटोटाइप के डेमो रिकॉर्ड से गिने गए हैं — यह वास्तविक सरकारी आंकड़े नहीं हैं।" :
+                   "Counts below are tallied from this prototype's own demo records — not real government statistics."}
+                </p>
+                <div className="grid4">
+                  <div className="stat-card"><div className="label">{t.vFarmers}</div><div className="value">{FARMER_RECORDS.filter((f) => f.status === "verified").length}</div></div>
+                  <div className="stat-card"><div className="label">{t.vBuyers}</div><div className="value">{BUYER_TEMPLATE.length}</div></div>
+                  <div className="stat-card"><div className="label">{t.activeListings}</div><div className="value">{buyerPosts.length}</div></div>
+                  <div className="stat-card"><div className="label">{t.activeOffers}</div><div className="value">{Object.keys(sentOffers).length}</div></div>
+                  <div className="stat-card"><div className="label">{t.txns}</div><div className="value">{transactions.length}</div></div>
+                  <div className="stat-card"><div className="label">{t.disputes}</div><div className="value">{disputes.length}</div></div>
+                </div>
+
+                <h2 className="section-title" style={{ marginTop: 22 }}>{t.adminQualitySection}</h2>
+                <div className="grid4">
+                  <div className="stat-card"><div className="label">{t.verificationPendingLbl}</div><div className="value">{listings.filter((l) => l.qualityStatus === "declared" || l.qualityStatus === "pending").length}</div></div>
+                  <div className="stat-card"><div className="label">{t.verifiedListingsLbl}</div><div className="value">{listings.filter((l) => l.qualityStatus === "verified").length}</div></div>
+                  <div className="stat-card"><div className="label">{t.qualityDisputesLbl}</div><div className="value">{disputes.filter((d) => d.status !== "resolved").length}</div></div>
+                  <div className="stat-card"><div className="label">{t.resolvedDisputesLbl}</div><div className="value">{disputes.filter((d) => d.status === "resolved").length}</div></div>
+                </div>
+                <div className="card" style={{ marginTop: 12 }}>
+                  <Badge tone="saffron">{t.demoVerificationLabel}</Badge>
+                  <table className="admin-tbl" style={{ marginTop: 8 }}>
+                    <thead><tr><th>{t.listingColLabel}</th><th>{t.qualityColLabel}</th><th>{t.statusColLabel}</th><th>{t.actionColLabel}</th></tr></thead>
+                    <tbody>
+                      {listings.length === 0 && (
+                        <tr><td colSpan={4} className="subtle">{lang === "mr" ? "अजून कोणतीही नोंद नाही." : lang === "hi" ? "अभी कोई लिस्टिंग नहीं है।" : "No listings yet."}</td></tr>
+                      )}
+                      {listings.map((l) => (
+                        <tr key={l.id}>
+                          <td>{cropLabel(l.crop)} · {l.qty} q</td>
+                          <td>{l.quality === "gradeA" ? t.gradeA : t.gradeB}</td>
+                          <td><QualityStatusBadge status={l.qualityStatus} t={t} /></td>
+                          <td>{l.qualityStatus !== "verified" && <button className="ghost-btn" onClick={() => verifyListing(l.id)}>{t.verifyBtn}</button>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <h2 className="section-title" style={{ marginTop: 22 }}>{t.disputeTitle}</h2>
+                <div className="card">
+                  <table className="admin-tbl">
+                    <thead><tr><th>{t.issueType}</th><th>{t.statusColLabel}</th><th>{t.actionColLabel}</th></tr></thead>
+                    <tbody>
+                      {disputes.length === 0 && (
+                        <tr><td colSpan={3} className="subtle">{lang === "mr" ? "अजून कोणताही वाद नाही." : lang === "hi" ? "अभी कोई विवाद नहीं है।" : "No disputes yet."}</td></tr>
+                      )}
+                      {disputes.map((d) => (
+                        <tr key={d.id}>
+                          <td>{d.issueType === "quality_mismatch" ? t.issueQualityMismatch : d.issueType === "quantity_mismatch" ? t.issueQuantityMismatch : t.issueReported}</td>
+                          <td><Badge tone={d.status === "resolved" ? "green" : "saffron"}>{d.status === "open" ? t.disputeOpen : d.status === "review" ? t.disputeReview : t.disputeResolved}</Badge></td>
+                          <td className="row">
+                            {d.status === "open" && <button className="ghost-btn" onClick={() => setDisputeStatus(d.id, "review")}>{t.reviewBtn}</button>}
+                            {d.status !== "resolved" && <button className="ghost-btn" onClick={() => setDisputeStatus(d.id, "resolved")}>{t.resolveBtn}</button>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <h2 className="section-title" style={{ marginTop: 22 }}>{t.vFarmers} / {t.vBuyers}</h2>
+                <div className="card">
+                  <table className="admin-tbl">
+                    <thead><tr><th>{t.nameLabel}</th><th>{t.labelLoc}</th><th>Status</th></tr></thead>
+                    <tbody>
+                      {FARMER_RECORDS.map((f) => {
+                        const displayName = { ramesh: { mr: "रमेश पाटील", hi: "रमेश पाटिल", en: "Ramesh Patil" }, sunita: { mr: "सुनिता जाधव", hi: "सुनीता जाधव", en: "Sunita Jadhav" } }[f.key][lang || "en"];
+                        return (
+                          <tr key={f.key}><td>{displayName}</td><td>{f.loc}</td><td><Badge tone={f.status === "verified" ? "green" : "saffron"}>{f.status === "verified" ? t.verified : t.pending}</Badge></td></tr>
+                        );
+                      })}
+                      {BUYER_TEMPLATE.map((b) => (
+                        <tr key={b.id}><td>{b.name}</td><td>{b.location}</td><td><Badge>{t.verified}</Badge></td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="footer-note">{t.footerNote}</div>
+          <div className="sources-foot">{t.sources}: Maharashtra Agriculture Department · AGMARKNET / Government OGD · e-NAM · Maharashtra State Data Bank — demo values only, not live data.</div>
+        </>
+      )}
+    </div>
+  );
+}
+
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<KisanSethu />);
+  </script>
+</body>
+</html>
